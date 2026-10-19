@@ -1,0 +1,287 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>종목 스크리너</title>
+<style>
+:root{
+  --bg:#f6f7f9;--card:#fff;--ink:#1c2230;--sub:#5d667a;--line:#e3e6ec;
+  --accent:#2f5bd8;--ok:#14804a;--okbg:#e3f5ec;--no:#b3261e;--nobg:#fbe9e7;--na:#8a91a3;--warn:#8a5a00;--warnbg:#fff4d6;
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#12151c;--card:#1a1f2a;--ink:#e8ebf2;--sub:#9aa3b8;--line:#2a3140;
+  --accent:#7aa2ff;--ok:#5fd39a;--okbg:#14301f;--no:#ff8f86;--nobg:#3a1c1a;--na:#7b8396;--warn:#ffd27a;--warnbg:#3a2f12;}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.55 -apple-system,"Malgun Gothic","Apple SD Gothic Neo",sans-serif}
+.wrap{max-width:1080px;margin:0 auto;padding:20px 16px 60px}
+h1{font-size:22px;margin:0 0 4px}
+.sub{color:var(--sub);font-size:13px}
+.banner{margin:14px 0;padding:10px 14px;border-radius:10px;background:var(--warnbg);color:var(--warn);font-size:13.5px}
+.banner.sample{background:var(--nobg);color:var(--no);font-weight:600}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin:12px 0}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border:1px solid var(--line);background:var(--card);color:var(--ink);padding:6px 12px;border-radius:999px;cursor:pointer;font-size:13.5px}
+.chip[aria-pressed=true]{background:var(--accent);border-color:var(--accent);color:#fff}
+.chip small{opacity:.75;margin-left:4px}
+.ctrl{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-top:12px;font-size:13.5px}
+input[type=search],select{padding:6px 10px;border-radius:8px;border:1px solid var(--line);background:var(--card);color:var(--ink);font-size:14px}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{padding:9px 8px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+th:first-child,td:first-child,th:nth-child(2),td:nth-child(2){text-align:left}
+th{font-size:12.5px;color:var(--sub);font-weight:600}
+tr.row{cursor:pointer}
+tr.row:hover{background:color-mix(in srgb,var(--accent) 7%,transparent)}
+.badge{display:inline-block;margin:1px 3px 1px 0;padding:1px 8px;border-radius:999px;background:var(--okbg);color:var(--ok);font-size:12px;font-weight:600}
+.num{font-variant-numeric:tabular-nums}
+.badge.near{background:transparent;border:1px dashed var(--warn);color:var(--warn)}
+.miss{font-size:12px;color:var(--warn);white-space:normal;max-width:360px;line-height:1.35}
+td.bd{white-space:normal;text-align:left}
+.detail td{background:color-mix(in srgb,var(--sub) 5%,transparent);white-space:normal;text-align:left}
+.mgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px}
+.mbox{border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:var(--card)}
+.mbox h4{margin:0 0 6px;font-size:14px}
+.crit{display:flex;gap:8px;font-size:13px;margin:3px 0}
+.mark{width:18px;flex:none;font-weight:700}
+.mark.t{color:var(--ok)}.mark.f{color:var(--no)}.mark.n{color:var(--na)}
+details{margin:6px 0}
+summary{cursor:pointer;font-weight:600}
+.scroll{overflow-x:auto}
+.empty{padding:28px;text-align:center;color:var(--sub)}
+.foot{color:var(--sub);font-size:12.5px;margin-top:20px}
+ul.plain{margin:6px 0 0;padding-left:18px;color:var(--sub);font-size:13.5px}
+@media (max-width:640px){.hide-m{display:none}}
+.tabs{display:flex;gap:6px;margin:12px 0 4px;border-bottom:1px solid var(--line)}
+.tab{border:0;background:transparent;color:var(--sub);padding:9px 14px;font-size:15px;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px}
+.tab[aria-selected=true]{color:var(--accent);border-bottom-color:var(--accent);font-weight:600}
+.star{color:#d99a00;font-weight:700;white-space:nowrap}
+tr.starred{background:color-mix(in srgb,#d99a00 9%,transparent)}
+.topgrid{display:flex;flex-wrap:wrap;gap:8px}
+.topitem{border:1px solid var(--line);border-radius:10px;padding:8px 12px;background:var(--card);font-size:13.5px}
+.cond{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13.5px}
+.cond span b{font-weight:600}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>종목 스크리너</h1>
+  <div class="tabs" role="tablist">
+    <button class="tab" id="tabbtn-masters" role="tab" aria-selected="true">대가 기준</button>
+    <button class="tab" id="tabbtn-surge" role="tab" aria-selected="false">거래대금 급증</button>
+  </div>
+<div id="tab-masters">
+  <div class="sub" id="metaline"></div>
+  <div id="banners"></div>
+
+  <div class="card">
+    <div class="chips" id="chips"></div>
+    <div class="ctrl">
+      <label>최소 일치 대가 수
+        <select id="minMatch"><option value="0">전체</option><option value="1" selected>1명 이상</option><option value="2">2명 이상</option><option value="3">3명 이상</option></select>
+      </label>
+      <label><input type="checkbox" id="near"> 한 조건만 미달한 종목도 포함 <span class="sub">(조건 3개 이상인 대가만)</span></label>
+      <input type="search" id="q" placeholder="종목명·코드 검색">
+      <span class="sub" id="count"></span>
+    </div>
+  </div>
+
+  <div class="card scroll">
+    <table>
+      <thead><tr>
+        <th>종목</th><th>통과한 대가 기준</th>
+        <th class="hide-m">PER</th><th class="hide-m">PBR</th><th class="hide-m">ROE</th><th class="hide-m">부채비율</th><th class="hide-m">배당</th>
+      </tr></thead>
+      <tbody id="tbody"></tbody>
+    </table>
+    <div class="empty" id="empty" hidden>조건에 맞는 종목이 없습니다.</div>
+  </div>
+
+  <div class="card">
+    <details><summary>각 대가 기준과 한계 (반대 논거 포함)</summary><div id="rules"></div></details>
+    <details><summary>구현하지 못한 기준</summary><ul class="plain" id="notimpl"></ul></details>
+    <details><summary>데이터 점검값</summary><div class="sub" id="sanity" style="margin-top:6px"></div></details>
+  </div>
+
+</div><!-- /tab-masters -->
+
+<div id="tab-surge" hidden>
+  <div class="sub" id="s-meta"></div>
+  <div id="s-banners"></div>
+  <div class="card" id="s-conds"></div>
+  <div class="card" id="s-top" hidden></div>
+  <div class="card scroll">
+    <table>
+      <thead><tr>
+        <th>순위</th><th>종목</th><th>현재가</th><th>등락률</th><th>거래대금(억)</th>
+        <th>거래대금 배수</th><th>거래량 배수</th><th>시가총액(억)</th><th>종합점수</th><th class="hide-m">상태</th>
+      </tr></thead>
+      <tbody id="s-tbody"></tbody>
+    </table>
+    <div class="empty" id="s-empty" hidden>조건에 맞는 종목이 없습니다.</div>
+  </div>
+  <div class="card"><details><summary>단계별 탈락 현황과 데이터 점검</summary><div class="sub" id="s-funnel" style="margin-top:6px"></div></details></div>
+  <p class="foot">거래대금이 급증하며 오른 종목은 호재가 이미 가격에 반영된 뒤일 수 있고 변동성이 큽니다. 별(★)은 지표 순위의 종합 상위일 뿐이며 매수 추천이 아닙니다.
+  이 필터의 성과는 과거 데이터로 검증되지 않았습니다.</p>
+</div>
+
+  <p class="foot" id="foot-masters">이 페이지는 공개된 투자 철학을 수치 조건으로 옮긴 <b>후보 선별 도구</b>이며 투자 자문이나 매수·매도 추천이 아닙니다.
+  통과 여부는 직전 결산·최근 시점의 단일 시점 값으로 계산되므로, 투자 판단 전에 공시와 사업 내용을 직접 확인하세요.</p>
+</div>
+<script src="results.js"></script>
+<script src="surge.js"></script>
+<script>
+(function(){
+  var R = window.RESULTS;
+  var $ = function(id){return document.getElementById(id)};
+  if(!R){document.body.innerHTML='<p style="padding:24px">results.js를 불러오지 못했습니다. screen.py를 먼저 실행하세요.</p>';return;}
+  var meta = R.meta, stocks = R.stocks, masters = meta.masters;
+  var active = {}; masters.forEach(function(m){active[m.id]=false});
+
+  function f(v,d){ if(v===null||v===undefined) return '-'; return Number(v).toLocaleString('ko-KR',{maximumFractionDigits:d===undefined?1:d}); }
+  function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+
+  $('metaline').textContent = '데이터: ' + meta.source + ' · 수집 ' + (meta.data_collected_at||'-') + ' · 분석 ' + meta.analyzed + '종목 (대상 ' + meta.universe + ')';
+  var b = '';
+  if(meta.sample) b += '<div class="banner sample">⚠ 샘플 화면입니다. 아래 종목·수치는 가상의 데이터이며 실제 시장 정보가 아닙니다. collect_kb.py → screen.py를 실행하면 실제 데이터로 바뀝니다.</div>';
+  if(meta.stripped) b += '<div class="banner">공개용 간소 모드: 통과 여부만 표시하고 원 수치는 숨겼습니다.</div>';
+  var ex = Object.keys(meta.excluded||{}).map(function(k){return k+' '+meta.excluded[k]}).join(', ');
+  if(ex) b += '<div class="banner">분석에서 제외: ' + esc(ex) + '</div>';
+  $('banners').innerHTML = b;
+
+  // status of one stock for one master: pass / near (exactly one criterion missed, all data present) / no
+  function status(s,id){var r=s.masters[id]; if(r.pass) return 'pass'; if(r.total>=3 && r.missing===0 && r.passed===r.total-1) return 'near'; return 'no';}
+  function missed(m,s){var r=s.masters[m.id]; for(var i=0;i<r.detail.length;i++){ if(r.detail[i].ok===false) return m.criteria[i].label; } return '';}
+  function good(s,id){var st=status(s,id); return st==='pass' || (st==='near' && $('near').checked);}
+  function counts(){var c={};masters.forEach(function(m){c[m.id]=stocks.filter(function(s){return good(s,m.id)}).length});return c}
+  var cnt = counts();
+  $('chips').innerHTML = masters.map(function(m){
+    return '<button class="chip" data-id="'+m.id+'" aria-pressed="false">'+esc(m.name)+'<small>'+cnt[m.id]+'</small></button>';
+  }).join('');
+  $('chips').addEventListener('click',function(e){
+    var t=e.target.closest('.chip'); if(!t) return;
+    var id=t.dataset.id; active[id]=!active[id]; t.setAttribute('aria-pressed',active[id]); render();
+  });
+  function refreshChips(){var c=counts(); masters.forEach(function(m){var b=document.querySelector('.chip[data-id="'+m.id+'"] small'); if(b) b.textContent=c[m.id];});}
+  $('minMatch').onchange=render; $('q').oninput=render; $('near').onchange=function(){refreshChips();render();};
+
+  var open = {};
+  function render(){
+    var sel = masters.filter(function(m){return active[m.id]}).map(function(m){return m.id});
+    var min = +$('minMatch').value, q = $('q').value.trim().toLowerCase();
+    var list = stocks.filter(function(s){
+      if(sel.length && !sel.every(function(id){return good(s,id)})) return false;
+      if(!sel.length){var n=masters.filter(function(m){return good(s,m.id)}).length; if(n<min) return false;}
+      if(q && s.name.toLowerCase().indexOf(q)<0 && s.code.indexOf(q)<0) return false;
+      return true;
+    });
+    if($('near').checked){
+      var key=function(s){var k=0;masters.forEach(function(m){var t=status(s,m.id); if(t==='pass')k+=2; else if(t==='near')k+=1;});return -k;};
+      list = list.map(function(s,i){return [s,i]}).sort(function(a,b){return key(a[0])-key(b[0]) || a[1]-b[1]}).map(function(x){return x[0]});
+    }
+    $('count').textContent = list.length + '종목';
+    $('empty').hidden = list.length>0;
+    var shown = list.slice(0,200), html='';
+    shown.forEach(function(s){
+      var m=s.metrics||{};
+      var bd = masters.filter(function(x){return status(s,x.id)==='pass'}).map(function(x){return '<span class="badge">'+esc(x.name.split(' ').pop())+'</span>'}).join('');
+      if($('near').checked){
+        masters.forEach(function(x){ if(status(s,x.id)==='near'){ bd += '<span class="badge near" title="한 조건만 미달">'+esc(x.name.split(' ').pop())+' −1</span>'; } });
+        var ms = masters.filter(function(x){return status(s,x.id)==='near'}).map(function(x){return esc(x.name.split(' ').pop())+' 미달: '+esc(missed(x,s))});
+        if(ms.length) bd += '<div class="miss">'+ms.join('<br>')+'</div>';
+      }
+      html += '<tr class="row" data-code="'+s.code+'"><td><b>'+esc(s.name)+'</b><div class="sub">'+s.code+'</div></td><td class="bd">'+(bd||'<span class="sub">-</span>')+'</td>'
+        +'<td class="num hide-m">'+f(m.per)+'</td><td class="num hide-m">'+f(m.pbr,2)+'</td><td class="num hide-m">'+f(m.roe)+'%</td><td class="num hide-m">'+f(m.debt,0)+'%</td><td class="num hide-m">'+f(m.div)+'%</td></tr>';
+      if(open[s.code]) html += '<tr class="detail"><td colspan="7">'+detail(s)+'</td></tr>';
+    });
+    if(list.length>shown.length) html += '<tr><td colspan="7" class="sub">상위 200종목만 표시합니다. 조건을 좁혀 보세요.</td></tr>';
+    $('tbody').innerHTML = html;
+  }
+  $('tbody').addEventListener('click',function(e){
+    var tr=e.target.closest('tr.row'); if(!tr) return; var c=tr.dataset.code; open[c]=!open[c]; render();
+  });
+  function detail(s){
+    return '<div class="mgrid">'+masters.map(function(m){
+      var r=s.masters[m.id];
+      var rows = m.criteria.map(function(c,i){
+        var d=r.detail[i], cls=d.ok===true?'t':(d.ok===false?'f':'n'), mk=d.ok===true?'✓':(d.ok===false?'✗':'?');
+        return '<div class="crit"><span class="mark '+cls+'">'+mk+'</span><span>'+esc(c.label)+(d.value!=null?' <span class="sub">(현재 '+d.value+')</span>':'')+(d.ok===null?' <span class="sub">(데이터 없음)</span>':'')+'</span></div>';
+      }).join('');
+      return '<div class="mbox"><h4>'+esc(m.name)+' <span class="sub">'+r.passed+'/'+r.total+'</span></h4>'+rows+'</div>';
+    }).join('')+'</div>';
+  }
+
+  $('rules').innerHTML = masters.map(function(m){
+    return '<div style="margin:10px 0"><b>'+esc(m.name)+'</b> <span class="sub">· '+esc(m.tag)+'</span><div class="sub">'+esc(m.summary)+'</div>'
+      +'<ul class="plain">'+m.criteria.map(function(c){return '<li>'+esc(c.label)+'</li>'}).join('')+'</ul>'
+      +'<div class="sub" style="margin-top:4px"><b>한계·반대 논거:</b> '+esc(m.caveats)+'</div></div>';
+  }).join('');
+  $('notimpl').innerHTML = meta.not_implemented.map(function(n){return '<li><b>'+esc(n.name)+'</b> — '+esc(n.reason)+'</li>'}).join('');
+  var mc = meta.median_check||{};
+  $('sanity').textContent = '중앙값 PER '+f(mc.per)+' · PBR '+f(mc.pbr,2)+' · ROE '+f(mc.roe)+'% · 부채비율 '+f(mc.debt,0)+'% · P2 해석 방식: '+meta.p2_mode+' (국내 시장 일반 수준과 크게 다르면 수치 단위를 점검하세요)';
+  render();
+})();
+</script>
+
+<script>
+// ---- tabs
+(function(){
+  var tabs={masters:'tab-masters',surge:'tab-surge'};
+  function show(name){
+    Object.keys(tabs).forEach(function(k){
+      document.getElementById(tabs[k]).hidden = (k!==name);
+      document.getElementById('tabbtn-'+k).setAttribute('aria-selected', k===name);
+    });
+    var fm=document.getElementById('foot-masters'); if(fm) fm.hidden = (name!=='masters');
+    try{ localStorage.setItem('tab',name);}catch(e){}
+  }
+  Object.keys(tabs).forEach(function(k){document.getElementById('tabbtn-'+k).onclick=function(){show(k)}});
+  var start='masters'; try{ start=localStorage.getItem('tab')||'masters'; }catch(e){}
+  show(tabs[start]?start:'masters');
+})();
+
+// ---- surge tab
+(function(){
+  var S=window.SURGE, $=function(id){return document.getElementById(id)};
+  function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+  function n(v,d){ if(v===null||v===undefined||isNaN(v)) return '-'; return Number(v).toLocaleString('ko-KR',{maximumFractionDigits:d===undefined?1:d,minimumFractionDigits:d===undefined?0:d}); }
+  function eok(v){ return v==null?'-':n(v/1e8,1); }
+  if(!S){ $('s-meta').textContent='surge.js가 없습니다. run_surge.bat를 먼저 실행하세요.'; return; }
+  var m=S.meta, c=m.conditions, stocks=S.stocks;
+  $('s-meta').textContent='수집 '+(m.collected_at||'-')+' · 기준일 '+m.now_dt+' · 결과 '+m.final+'종목';
+  var b='';
+  if(m.sample) b+='<div class="banner sample">⚠ 샘플 화면입니다. 종목과 수치는 가상 데이터이며 실제 시장 정보가 아닙니다.</div>';
+  (m.warnings||[]).forEach(function(w){ b+='<div class="banner">'+esc(w)+'</div>'; });
+  (m.exclusion_notice||[]).forEach(function(w){ b+='<div class="banner">⚠ '+esc(w)+'</div>'; });
+  $('s-banners').innerHTML=b;
+  $('s-conds').innerHTML='<div class="cond"><span><b>대상</b> KOSPI·KOSDAQ</span><span><b>거래대금</b> '+eok(c.min_value)+'억 이상</span>'
+    +'<span><b>거래대금 배수</b> 직전 '+c.window+'거래일 평균(당일 제외) 대비 '+c.mult_min+'배 이상</span>'
+    +'<span><b>등락률</b> +'+c.chg_min+'% ~ +'+c.chg_max+'%</span><span><b>시가총액</b> '+eok(c.cap_min)+'억 이상</span></div>'
+    +'<div class="sub" style="margin-top:6px">종합점수 = 지표 순위 가중합 (거래대금 배수 '+Math.round(c.weights.value_mult*100)+'%, 거래량 배수 '+Math.round(c.weights.vol_mult*100)+'%, 거래대금 규모 '+Math.round(c.weights.value_size*100)+'%, 시가총액 '+Math.round(c.weights.cap*100)+'%'+(c.cap_direction==='high'?', 클수록 높게':', 작을수록 높게')+'). 목록은 거래대금 배수 순입니다.</div>';
+  var top=stocks.filter(function(s){return s.star}).sort(function(a,b){return a.star-b.star});
+  if(top.length){
+    $('s-top').hidden=false;
+    $('s-top').innerHTML='<div class="sub" style="margin-bottom:6px">종합 상위 '+top.length+'종목 (지표 순위 기준, 추천 아님)</div><div class="topgrid">'+top.map(function(s){
+      return '<div class="topitem"><span class="star">★'+s.star+'</span> <b>'+esc(s.name)+'</b> <span class="sub">'+s.code+'</span><div class="sub">점수 '+n(s.score,1)+' · 대금 ×'+n(s.value_mult,2)+' · 량 ×'+n(s.vol_mult,2)+'</div></div>';
+    }).join('')+'</div>';
+  }
+  $('s-empty').hidden=stocks.length>0;
+  $('s-tbody').innerHTML=stocks.map(function(s,i){
+    var st=[s.is_st&&('코드 '+s.is_st), s.trade_restriction, s.registration].filter(Boolean).join(' / ');
+    return '<tr class="'+(s.star?'starred':'')+'"><td class="num">'+(s.star?'<span class="star">★'+s.star+'</span>':(i+1))+'</td>'
+      +'<td><b>'+esc(s.name)+'</b><div class="sub">'+s.code+' · '+s.market+'</div></td>'
+      +'<td class="num">'+n(s.price,0)+'</td><td class="num">+'+n(s.chg,2)+'%</td><td class="num">'+eok(s.value)+'</td>'
+      +'<td class="num"><b>×'+n(s.value_mult,2)+'</b></td><td class="num">×'+n(s.vol_mult,2)+'</td><td class="num">'+eok(s.cap)+'</td>'
+      +'<td class="num">'+n(s.score,1)+'</td><td class="hide-m sub" style="white-space:normal">'+esc(st||'-')+'</td></tr>';
+  }).join('');
+  var f=m.funnel||{}, u=m.unit_check||{}, ex=m.exclusions||{};
+  var labels={ranking_rows:'랭킹 조회 종목',drop_value:'거래대금 미달',drop_change:'등락률 범위 밖',drop_spac_etf_name:'ETF·스팩(이름)',drop_is_st:'종목상태 코드 제외',
+    drop_exclusions_file:'제외 목록 파일',drop_not_kospi_kosdaq:'KOSPI·KOSDAQ 아님',drop_cap_precheck:'시가총액 미달(사전)',drop_cap:'시가총액 미달',
+    drop_candles_lt_window:'일봉 부족(신규상장 등)',drop_no_average:'평균 계산 불가',drop_multiple:'배수 미달',drop_spac:'스팩',drop_restriction_keyword:'매매제한·관리 키워드',error_stock:'조회 오류'};
+  var h=Object.keys(f).map(function(k){return esc(labels[k]||k)+': '+f[k]}).join(' · ');
+  h+='<br><br>단위 점검: 일봉 거래대금 환산 배율 '+n(u.value_scale,0)+' (잔차 '+n(u.value_ratio_resid,3)+'), 전일 거래량 잔차 '+n(u.volume_ratio_resid,3)+', 시가총액 잔차 '+n(u.cap_ratio_resid,3)+' (잔차가 1에 가까울수록 데이터 출처가 일치)';
+  h+='<br>종목상태(is_st) 분포: '+esc(JSON.stringify(ex.is_st_counts||{}))+' · 제외 코드: '+esc(JSON.stringify(ex.is_st_codes||[]))+' · 제외 목록 파일 '+n(ex.file_rows,0)+'건';
+  $('s-funnel').innerHTML=h;
+})();
+</script>
+</body>
+</html>
