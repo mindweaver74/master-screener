@@ -113,7 +113,7 @@ tr.starred{background:color-mix(in srgb,#d99a00 9%,transparent)}
     <table>
       <thead><tr>
         <th>순위</th><th>종목</th><th>현재가</th><th>등락률</th><th>거래대금(억)</th>
-        <th>거래대금 배수</th><th>거래량 배수</th><th>시가총액(억)</th><th>종합점수</th><th class="hide-m">상태</th>
+        <th>거래대금 배수</th><th>거래량 배수</th><th>시가총액(억)</th><th>종합점수</th><th>종가위치</th><th>윗꼬리</th><th class="hide-m">상태</th>
       </tr></thead>
       <tbody id="s-tbody"></tbody>
     </table>
@@ -261,7 +261,7 @@ tr.starred{background:color-mix(in srgb,#d99a00 9%,transparent)}
   if(top.length){
     $('s-top').hidden=false;
     $('s-top').innerHTML='<div class="sub" style="margin-bottom:6px">종합 상위 '+top.length+'종목 (지표 순위 기준, 추천 아님)</div><div class="topgrid">'+top.map(function(s){
-      return '<div class="topitem"><span class="star">★'+s.star+'</span> <b>'+esc(s.name)+'</b> <span class="sub">'+s.code+'</span><div class="sub">점수 '+n(s.score,1)+' · 대금 ×'+n(s.value_mult,2)+' · 량 ×'+n(s.vol_mult,2)+'</div></div>';
+      return '<div class="topitem"><span class="star">★'+s.star+'</span> <b>'+esc(s.name)+'</b> <span class="sub">'+s.code+'</span><div class="sub">점수 '+n(s.score,1)+' · 대금 ×'+n(s.value_mult,2)+' · 량 ×'+n(s.vol_mult,2)+(s.shape_tag?' · '+s.shape_tag:'')+'</div></div>';
     }).join('')+'</div>';
   }
   $('s-empty').hidden=stocks.length>0;
@@ -271,7 +271,10 @@ tr.starred{background:color-mix(in srgb,#d99a00 9%,transparent)}
       +'<td><b>'+esc(s.name)+'</b><div class="sub">'+s.code+' · '+s.market+'</div></td>'
       +'<td class="num">'+n(s.price,0)+'</td><td class="num">+'+n(s.chg,2)+'%</td><td class="num">'+eok(s.value)+'</td>'
       +'<td class="num"><b>×'+n(s.value_mult,2)+'</b></td><td class="num">×'+n(s.vol_mult,2)+'</td><td class="num">'+eok(s.cap)+'</td>'
-      +'<td class="num">'+n(s.score,1)+'</td><td class="hide-m sub" style="white-space:normal">'+esc(st||'-')+'</td></tr>';
+      +'<td class="num">'+n(s.score,1)+'</td>'
+      +'<td class="num">'+(s.close_pos==null?'-':Math.round(s.close_pos*100)+'%')+'</td>'
+      +'<td class="num">'+(s.upper_wick==null?'-':Math.round(s.upper_wick*100)+'%')+(s.shape_tag?'<div class="sub" style="color:'+(s.shape_tag==='윗꼬리 큼'?'#b45309':'#15803d')+'">'+s.shape_tag+'</div>':'')+'</td>'
+      +'<td class="hide-m sub" style="white-space:normal">'+esc(st||'-')+'</td></tr>';
   }).join('');
   var f=m.funnel||{}, u=m.unit_check||{}, ex=m.exclusions||{};
   var labels={ranking_rows:'랭킹 조회 종목',drop_value:'거래대금 미달',drop_change:'등락률 범위 밖',drop_spac_etf_name:'ETF·스팩(이름)',drop_is_st:'종목상태 코드 제외',
