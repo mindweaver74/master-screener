@@ -68,6 +68,7 @@ tr.starred{background:color-mix(in srgb,#d99a00 9%,transparent)}
   <div class="tabs" role="tablist">
     <button class="tab" id="tabbtn-masters" role="tab" aria-selected="true">대가 기준</button>
     <button class="tab" id="tabbtn-surge" role="tab" aria-selected="false">거래대금 급증</button>
+    <button class="tab" id="tabbtn-open" role="tab" aria-selected="false">장초반 점검</button>
   </div>
 <div id="tab-masters">
   <div class="sub" id="metaline"></div>
@@ -113,7 +114,7 @@ tr.starred{background:color-mix(in srgb,#d99a00 9%,transparent)}
     <table>
       <thead><tr>
         <th>순위</th><th>종목</th><th>현재가</th><th>등락률</th><th>거래대금(억)</th>
-        <th>거래대금 배수</th><th>거래량 배수</th><th>시가총액(억)</th><th>종합점수</th><th>종가위치</th><th>윗꼬리</th><th class="hide-m">상태</th>
+        <th>거래대금 배수</th><th>거래량 배수</th><th>시가총액(억)</th><th>종합점수</th><th>종가위치</th><th>윗꼬리</th><th>수급(최근 5일)</th><th class="hide-m">상태</th>
       </tr></thead>
       <tbody id="s-tbody"></tbody>
     </table>
@@ -124,11 +125,27 @@ tr.starred{background:color-mix(in srgb,#d99a00 9%,transparent)}
   이 필터의 성과는 과거 데이터로 검증되지 않았습니다.</p>
 </div>
 
+
+<div id="tab-open" hidden>
+  <div class="sub" id="o-meta"></div>
+  <div id="o-banners"></div>
+  <div class="card" id="o-conds"></div>
+  <div class="card scroll">
+    <table>
+      <thead><tr><th>상태</th><th>종목</th><th>현재가</th><th>갭</th><th style="text-align:left">점검 항목 (✔ 충족 · ✖ 미충족 · – 확인불가)</th></tr></thead>
+      <tbody id="o-tbody"></tbody>
+    </table>
+    <div class="empty" id="o-empty" hidden>점검할 종목이 없습니다.</div>
+  </div>
+  <p class="foot">장초반 신호는 노이즈가 크고(갭상승 후 되돌림 등) 항목별 기준값은 검증된 규칙이 아니라 가정입니다. "유지·약화·이탈"은 지금 시점의 체크리스트 결과일 뿐 매수·매도 추천이 아닙니다.</p>
+</div>
+
   <p class="foot" id="foot-masters">이 페이지는 공개된 투자 철학을 수치 조건으로 옮긴 <b>후보 선별 도구</b>이며 투자 자문이나 매수·매도 추천이 아닙니다.
   통과 여부는 직전 결산·최근 시점의 단일 시점 값으로 계산되므로, 투자 판단 전에 공시와 사업 내용을 직접 확인하세요.</p>
 </div>
 <script src="results.js"></script>
 <script src="surge.js"></script>
+<script src="open.js"></script>
 <script>
 (function(){
   var R = window.RESULTS;
@@ -225,7 +242,7 @@ tr.starred{background:color-mix(in srgb,#d99a00 9%,transparent)}
 <script>
 // ---- tabs
 (function(){
-  var tabs={masters:'tab-masters',surge:'tab-surge'};
+  var tabs={masters:'tab-masters',surge:'tab-surge',open:'tab-open'};
   function show(name){
     Object.keys(tabs).forEach(function(k){
       document.getElementById(tabs[k]).hidden = (k!==name);
@@ -261,12 +278,24 @@ tr.starred{background:color-mix(in srgb,#d99a00 9%,transparent)}
   if(top.length){
     $('s-top').hidden=false;
     $('s-top').innerHTML='<div class="sub" style="margin-bottom:6px">종합 상위 '+top.length+'종목 (지표 순위 기준, 추천 아님)</div><div class="topgrid">'+top.map(function(s){
-      return '<div class="topitem"><span class="star">★'+s.star+'</span> <b>'+esc(s.name)+'</b> <span class="sub">'+s.code+'</span><div class="sub">점수 '+n(s.score,1)+' · 대금 ×'+n(s.value_mult,2)+' · 량 ×'+n(s.vol_mult,2)+(s.shape_tag?' · '+s.shape_tag:'')+'</div></div>';
+      return '<div class="topitem"><span class="star">★'+s.star+'</span> <b>'+esc(s.name)+'</b> <span class="sub">'+s.code+'</span><div class="sub">점수 '+n(s.score,1)+' · 대금 ×'+n(s.value_mult,2)+' · 량 ×'+n(s.vol_mult,2)+(s.shape_tag?' · '+s.shape_tag:'')+(s.flow&&s.flow.tag?' · '+s.flow.tag:'')+'</div></div>';
     }).join('')+'</div>';
+  }
+  function flowCell(f){
+    if(!f) return '-';
+    function one(lbl,x){
+      if(!x||x.sum_sign==null) return lbl+' -';
+      var arrow=x.sum_sign>0?'<span style="color:#c2410c">▲</span>':(x.sum_sign<0?'<span style="color:#1d4ed8">▼</span>':'■');
+      return lbl+' '+arrow+x.pos_days+'/'+x.n;
+    }
+    var t=one('외',f.fgnr)+' · '+one('기',f.ogn)+' · '+one('개',f.indv);
+    if(f.tag) t+='<div style="margin-top:2px;color:'+(f.tag.indexOf('개인')===0?'#b45309':(f.tag.indexOf('매도')>0?'#1d4ed8':'#15803d'))+'">'+f.tag+'</div>';
+    if(f.has_estimate) t+='<div style="color:#888">오늘 값은 추정</div>';
+    return t;
   }
   $('s-empty').hidden=stocks.length>0;
   $('s-tbody').innerHTML=stocks.map(function(s,i){
-    var st=[s.is_st&&('코드 '+s.is_st), s.trade_restriction, s.registration].filter(Boolean).join(' / ');
+    var st=[s.is_st&&(({'01':'관리종목','02':'투자위험','03':'투자경고','04':'투자주의','05':'신용A/B/C군','06':'신용D군','08':'증거금100','09':'거래정지'})[s.is_st]||('코드 '+s.is_st)), s.trade_restriction, s.registration, (s.risk_grade&&s.risk_grade!=='미지정')?('위험등급 '+s.risk_grade):''].filter(Boolean).join(' / ');
     return '<tr class="'+(s.star?'starred':'')+'"><td class="num">'+(s.star?'<span class="star">★'+s.star+'</span>':(i+1))+'</td>'
       +'<td><b>'+esc(s.name)+'</b><div class="sub">'+s.code+' · '+s.market+'</div></td>'
       +'<td class="num">'+n(s.price,0)+'</td><td class="num">+'+n(s.chg,2)+'%</td><td class="num">'+eok(s.value)+'</td>'
@@ -274,6 +303,7 @@ tr.starred{background:color-mix(in srgb,#d99a00 9%,transparent)}
       +'<td class="num">'+n(s.score,1)+'</td>'
       +'<td class="num">'+(s.close_pos==null?'-':Math.round(s.close_pos*100)+'%')+'</td>'
       +'<td class="num">'+(s.upper_wick==null?'-':Math.round(s.upper_wick*100)+'%')+(s.shape_tag?'<div class="sub" style="color:'+(s.shape_tag==='윗꼬리 큼'?'#b45309':'#15803d')+'">'+s.shape_tag+'</div>':'')+'</td>'
+      +'<td class="sub" style="white-space:normal">'+flowCell(s.flow)+'</td>'
       +'<td class="hide-m sub" style="white-space:normal">'+esc(st||'-')+'</td></tr>';
   }).join('');
   var f=m.funnel||{}, u=m.unit_check||{}, ex=m.exclusions||{};
@@ -284,6 +314,44 @@ tr.starred{background:color-mix(in srgb,#d99a00 9%,transparent)}
   h+='<br><br>단위 점검: 일봉 거래대금 환산 배율 '+n(u.value_scale,0)+' (잔차 '+n(u.value_ratio_resid,3)+'), 전일 거래량 잔차 '+n(u.volume_ratio_resid,3)+', 시가총액 잔차 '+n(u.cap_ratio_resid,3)+' (잔차가 1에 가까울수록 데이터 출처가 일치)';
   h+='<br>종목상태(is_st) 분포: '+esc(JSON.stringify(ex.is_st_counts||{}))+' · 제외 코드: '+esc(JSON.stringify(ex.is_st_codes||[]))+' · 제외 목록 파일 '+n(ex.file_rows,0)+'건';
   $('s-funnel').innerHTML=h;
+})();
+
+// ---- opening check tab
+(function(){
+  var O=window.OPEN, $=function(id){return document.getElementById(id)};
+  function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+  function n(v,d){ if(v===null||v===undefined||isNaN(v)) return '-'; return Number(v).toLocaleString('ko-KR',{maximumFractionDigits:d===undefined?1:d,minimumFractionDigits:d===undefined?0:d}); }
+  if(!O){ $('o-meta').textContent='open.js가 없습니다. 먼저 run_surge.bat(마감 후)와 run_open.bat(장초반)를 실행하세요.'; return; }
+  var m=O.meta||{}, stocks=O.stocks||[];
+  $('o-meta').textContent='수집 '+(m.collected_at||'-').replace('T',' ')+' · 기준일 '+(m.now_dt||'-')+' · 전일 후보 '+(m.prev_dt||'-')+' · '+stocks.length+'종목';
+  var b='';
+  if(m.sample) b+='<div class="banner sample">⚠ 샘플 화면입니다. 종목과 수치는 가상 데이터이며 실제 시장 정보가 아닙니다.</div>';
+  (m.warnings||[]).forEach(function(w){ b+='<div class="banner">'+esc(w)+'</div>'; });
+  $('o-banners').innerHTML=b;
+  var c=m.conditions||{};
+  $('o-conds').innerHTML='<div><b>점검 항목</b> 전일 종가 위 · 시가 위 · VWAP 위 · 고점 -'+n(c.open_pullback_max_pct,1)+'% 이내 · 같은 시각 거래 페이스 ×'+n(c.open_pace_min,1)+' 이상 · 체결강도 '+n(c.open_strength_min,0)+' 이상</div>'
+    +'<div class="sub" style="margin-top:6px">상태: 점검된 항목의 '+Math.round((c.open_keep_ratio||0.8)*100)+'% 이상 충족 = 유지, '+Math.round((c.open_weak_ratio||0.5)*100)+'% 미만 = 이탈, 그 사이 = 약화. 전일 종가 아래로 내려오면 다른 항목과 무관하게 이탈, 점검 가능한 항목이 3개 미만이면 판단 보류. 목록은 유지 → 약화 → 이탈 순입니다.</div>';
+  var colors={maintained:['var(--okbg)','var(--ok)'],weakening:['var(--warnbg)','var(--warn)'],broken:['var(--nobg)','var(--no)'],hold:['var(--line)','var(--sub)']};
+  var mark={pass:'✔',fail:'✖',na:'–'}, mcol={pass:'var(--ok)',fail:'var(--no)',na:'var(--na)'};
+  $('o-empty').hidden=stocks.length>0;
+  $('o-tbody').innerHTML=stocks.map(function(s){
+    var cl=colors[s.status]||colors.hold;
+    var chips=s.items.filter(function(i){return i.key!=='data'}).map(function(i){
+      return '<span style="white-space:nowrap;margin-right:8px"><span style="color:'+mcol[i.status]+';font-weight:700">'+mark[i.status]+'</span> '+esc(i.label)+'</span>';
+    }).join('');
+    var det='<details style="margin-top:4px"><summary class="sub">항목 상세</summary><ul class="plain">'+s.items.map(function(i){return '<li><span style="color:'+mcol[i.status]+'">'+mark[i.status]+'</span> '+esc(i.label)+': '+esc(i.text)+'</li>'}).join('')
+      +(lv?'<li>기준가) '+lv.replace(/<br>/g,' · ')+'</li>':'')+(s.book_ratio!=null?'<li>참고) 매수/매도 호가 총잔량 비 ×'+n(s.book_ratio,2)+' (호가는 금방 바뀝니다)</li>':'')+'</ul></details>';
+    var lv=(s.levels||[]).map(function(l){return esc(l.label)+' '+n(l.price,0)}).join('<br>');
+    var p=s.prev||{}, ps=[];
+    if(p.star) ps.push('★'+p.star);
+    if(p.shape_tag) ps.push(p.shape_tag);
+    if(p.flow_tag) ps.push(p.flow_tag);
+    return '<tr><td><span style="display:inline-block;padding:2px 10px;border-radius:999px;font-weight:700;background:'+cl[0]+';color:'+cl[1]+'">'+esc(s.status_label)+'</span><div class="sub">'+s.passed+'/'+s.checked+'</div></td>'
+      +'<td><b>'+esc(s.name)+'</b><div class="sub">'+esc(s.code)+' · '+esc(s.market||'')+'</div>'+(ps.length?'<div class="sub">전일: '+esc(ps.join(' · '))+'</div>':'')+'</td>'
+      +'<td class="num">'+n(s.price,0)+'<div class="sub">'+(s.chg==null?'-':(s.chg>=0?'+':'')+n(s.chg,2)+'%')+'</div></td>'
+      +'<td class="num">'+(s.gap_pct==null?'-':(s.gap_pct>=0?'+':'')+n(s.gap_pct,2)+'%')+'</td>'
+      +'<td style="white-space:normal;text-align:left">'+chips+det+'</td></tr>';
+  }).join('');
 })();
 </script>
 </body>
