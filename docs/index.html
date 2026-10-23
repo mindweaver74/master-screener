@@ -6,40 +6,58 @@
 <title>종목 스크리너</title>
 <style>
 :root{
-  --bg:#f6f7f9;--card:#fff;--ink:#1c2230;--sub:#5d667a;--line:#e3e6ec;
-  --accent:#2f5bd8;--ok:#14804a;--okbg:#e3f5ec;--no:#b3261e;--nobg:#fbe9e7;--na:#8a91a3;--warn:#8a5a00;--warnbg:#fff4d6;
+  color-scheme:dark;
+  --bg:#0a1020;--bg2:#0e1730;--card:#111b33;--card2:#16223f;--ink:#e7ecf7;--sub:#8e9bbb;--line:#22315a;
+  --accent:#5b9bff;--accent-soft:rgba(91,155,255,.16);
+  --ok:#4cd9a0;--okbg:rgba(76,217,160,.14);--no:#ff7b72;--nobg:rgba(255,123,114,.14);--na:#6f7ca0;
+  --warn:#f2b84b;--warnbg:rgba(242,184,75,.10);--info:#5b9bff;--infobg:rgba(91,155,255,.10);
+  --up:#ff8a5b;--down:#6ea0ff;--amber:#f0b429;--gold:#e5b13a;
 }
-@media (prefers-color-scheme:dark){:root{
-  --bg:#12151c;--card:#1a1f2a;--ink:#e8ebf2;--sub:#9aa3b8;--line:#2a3140;
-  --accent:#7aa2ff;--ok:#5fd39a;--okbg:#14301f;--no:#ff8f86;--nobg:#3a1c1a;--na:#7b8396;--warn:#ffd27a;--warnbg:#3a2f12;}}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.55 -apple-system,"Malgun Gothic","Apple SD Gothic Neo",sans-serif}
-.wrap{max-width:1080px;margin:0 auto;padding:20px 16px 60px}
-h1{font-size:22px;margin:0 0 4px}
+html{background:var(--bg)}
+body{margin:0;color:var(--ink);background:linear-gradient(180deg,var(--bg2) 0,var(--bg) 360px) no-repeat,var(--bg);
+  font:15px/1.6 -apple-system,"Pretendard","Malgun Gothic","Apple SD Gothic Neo",sans-serif;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1120px;margin:0 auto;padding:26px 16px 70px}
+h1{font-size:23px;margin:0;letter-spacing:-.3px;display:flex;align-items:center;gap:10px}
+h1::before{content:"";width:10px;height:22px;border-radius:3px;background:linear-gradient(180deg,#7db1ff,#3b6fe0)}
 .sub{color:var(--sub);font-size:13px}
-.banner{margin:14px 0;padding:10px 14px;border-radius:10px;background:var(--warnbg);color:var(--warn);font-size:13.5px}
-.banner.sample{background:var(--nobg);color:var(--no);font-weight:600}
-.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin:12px 0}
+.card{background:linear-gradient(180deg,var(--card),#0f1830);border:1px solid var(--line);border-radius:14px;padding:15px 18px;margin:14px 0;box-shadow:0 6px 22px rgba(0,0,0,.28)}
+.tabs{display:inline-flex;gap:4px;margin:16px 0 8px;padding:4px;border:1px solid var(--line);border-radius:12px;background:var(--bg2);max-width:100%;overflow-x:auto}
+.tab{border:0;background:transparent;color:var(--sub);padding:8px 16px;font-size:14.5px;cursor:pointer;border-radius:9px;white-space:nowrap;font-family:inherit}
+.tab:hover{color:var(--ink)}
+.tab[aria-selected=true]{color:#fff;background:linear-gradient(180deg,#3d6fd9,#2c55b8);font-weight:600;box-shadow:0 2px 10px rgba(59,111,224,.4)}
+#metaline,#s-meta,#o-meta,#g-meta{margin:10px 2px}
+/* notes (replace the old yellow banners) */
+.note{display:flex;gap:11px;align-items:flex-start;margin:10px 0;padding:11px 14px 11px 12px;border-radius:12px;border:1px solid var(--line);border-left:4px solid var(--info);background:var(--infobg);font-size:13.5px;line-height:1.55}
+.note .ni{flex:none;width:20px;height:20px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;margin-top:1px;background:var(--info);color:#06122b}
+.note.warn{border-left-color:var(--warn);background:var(--warnbg)}.note.warn .ni{background:var(--warn)}
+.note.danger{border-left-color:var(--no);background:var(--nobg)}.note.danger .ni{background:var(--no)}
+.note .nt{font-weight:500}
+.note details{margin:4px 0 0}.note summary{font-weight:500;color:var(--sub);font-size:12.5px}
+.note .nb{color:var(--sub);margin-top:4px}
 .chips{display:flex;flex-wrap:wrap;gap:8px}
-.chip{border:1px solid var(--line);background:var(--card);color:var(--ink);padding:6px 12px;border-radius:999px;cursor:pointer;font-size:13.5px}
-.chip[aria-pressed=true]{background:var(--accent);border-color:var(--accent);color:#fff}
-.chip small{opacity:.75;margin-left:4px}
+.chip{border:1px solid var(--line);background:var(--card2);color:var(--ink);padding:6px 13px;border-radius:999px;cursor:pointer;font-size:13.5px;font-family:inherit}
+.chip:hover{border-color:var(--accent)}
+.chip[aria-pressed=true]{background:var(--accent-soft);border-color:var(--accent);color:#cfe1ff}
+.chip small{opacity:.7;margin-left:4px}
 .ctrl{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-top:12px;font-size:13.5px}
-input[type=search],select{padding:6px 10px;border-radius:8px;border:1px solid var(--line);background:var(--card);color:var(--ink);font-size:14px}
+input[type=search],select{padding:7px 11px;border-radius:9px;border:1px solid var(--line);background:var(--bg2);color:var(--ink);font-size:14px;font-family:inherit}
+input[type=search]::placeholder{color:var(--na)}
 table{width:100%;border-collapse:collapse;font-size:14px}
-th,td{padding:9px 8px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+th,td{padding:10px 9px;border-bottom:1px solid rgba(34,49,90,.7);text-align:right;white-space:nowrap}
 th:first-child,td:first-child,th:nth-child(2),td:nth-child(2){text-align:left}
-th{font-size:12.5px;color:var(--sub);font-weight:600}
+th{font-size:12px;color:var(--sub);font-weight:600;letter-spacing:.2px;background:rgba(22,34,63,.6)}
+tbody tr:last-child td{border-bottom:0}
 tr.row{cursor:pointer}
-tr.row:hover{background:color-mix(in srgb,var(--accent) 7%,transparent)}
-.badge{display:inline-block;margin:1px 3px 1px 0;padding:1px 8px;border-radius:999px;background:var(--okbg);color:var(--ok);font-size:12px;font-weight:600}
+tr.row:hover,tbody tr:hover{background:rgba(91,155,255,.07)}
+.badge{display:inline-block;margin:1px 3px 1px 0;padding:1px 9px;border-radius:999px;background:var(--okbg);color:var(--ok);font-size:12px;font-weight:600}
 .num{font-variant-numeric:tabular-nums}
 .badge.near{background:transparent;border:1px dashed var(--warn);color:var(--warn)}
 .miss{font-size:12px;color:var(--warn);white-space:normal;max-width:360px;line-height:1.35}
 td.bd{white-space:normal;text-align:left}
-.detail td{background:color-mix(in srgb,var(--sub) 5%,transparent);white-space:normal;text-align:left}
+.detail td{background:rgba(22,34,63,.55);white-space:normal;text-align:left}
 .mgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px}
-.mbox{border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:var(--card)}
+.mbox{border:1px solid var(--line);border-radius:12px;padding:11px 13px;background:var(--card2)}
 .mbox h4{margin:0 0 6px;font-size:14px}
 .crit{display:flex;gap:8px;font-size:13px;margin:3px 0}
 .mark{width:18px;flex:none;font-weight:700}
@@ -47,19 +65,16 @@ td.bd{white-space:normal;text-align:left}
 details{margin:6px 0}
 summary{cursor:pointer;font-weight:600}
 .scroll{overflow-x:auto}
-.empty{padding:28px;text-align:center;color:var(--sub)}
-.foot{color:var(--sub);font-size:12.5px;margin-top:20px}
+.empty{padding:30px;text-align:center;color:var(--sub)}
+.foot{color:var(--sub);font-size:12.5px;margin-top:22px;padding-top:14px;border-top:1px solid var(--line)}
 ul.plain{margin:6px 0 0;padding-left:18px;color:var(--sub);font-size:13.5px}
-@media (max-width:640px){.hide-m{display:none}}
-.tabs{display:flex;gap:6px;margin:12px 0 4px;border-bottom:1px solid var(--line)}
-.tab{border:0;background:transparent;color:var(--sub);padding:9px 14px;font-size:15px;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px}
-.tab[aria-selected=true]{color:var(--accent);border-bottom-color:var(--accent);font-weight:600}
-.star{color:#d99a00;font-weight:700;white-space:nowrap}
-tr.starred{background:color-mix(in srgb,#d99a00 9%,transparent)}
-.topgrid{display:flex;flex-wrap:wrap;gap:8px}
-.topitem{border:1px solid var(--line);border-radius:10px;padding:8px 12px;background:var(--card);font-size:13.5px}
-.cond{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13.5px}
-.cond span b{font-weight:600}
+@media (max-width:640px){.hide-m{display:none}.wrap{padding-top:18px}.tabs{display:flex;width:100%}.tab{flex:1;padding:8px 4px;font-size:13px}}
+.star{color:var(--gold);font-weight:700;white-space:nowrap}
+tr.starred{background:linear-gradient(90deg,rgba(229,177,58,.13),rgba(229,177,58,.03))}
+.topgrid{display:flex;flex-wrap:wrap;gap:10px}
+.topitem{border:1px solid var(--line);border-radius:12px;padding:9px 14px;background:var(--card2);font-size:13.5px}
+.cond{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:13.5px}
+.cond span b{font-weight:600;color:#a9c4f5;margin-right:2px}
 </style>
 </head>
 <body>
@@ -69,6 +84,7 @@ tr.starred{background:color-mix(in srgb,#d99a00 9%,transparent)}
     <button class="tab" id="tabbtn-masters" role="tab" aria-selected="true">대가 기준</button>
     <button class="tab" id="tabbtn-surge" role="tab" aria-selected="false">거래대금 급증</button>
     <button class="tab" id="tabbtn-open" role="tab" aria-selected="false">장초반 점검</button>
+    <button class="tab" id="tabbtn-global" role="tab" aria-selected="false">해외 급증</button>
   </div>
 <div id="tab-masters">
   <div class="sub" id="metaline"></div>
@@ -126,6 +142,26 @@ tr.starred{background:color-mix(in srgb,#d99a00 9%,transparent)}
 </div>
 
 
+<div id="tab-global" hidden>
+  <div class="sub" id="g-meta"></div>
+  <div id="g-banners"></div>
+  <div class="card" id="g-conds"></div>
+  <div class="card" id="g-top" hidden></div>
+  <div class="card scroll">
+    <table>
+      <thead><tr>
+        <th>순위</th><th>종목</th><th>현재가($)</th><th>등락률</th><th>거래대금($M)</th>
+        <th>거래대금 배수</th><th>거래량 배수</th><th>시가총액($B)</th><th>종합점수</th><th>종가위치</th><th>윗꼬리</th><th>52주 고점 대비</th>
+      </tr></thead>
+      <tbody id="g-tbody"></tbody>
+    </table>
+    <div class="empty" id="g-empty" hidden>조건에 맞는 종목이 없습니다.</div>
+  </div>
+  <div class="card"><details><summary>단계별 탈락 현황, 임계값 민감도, 데이터 점검</summary><div class="sub" id="g-funnel" style="margin-top:6px"></div></details></div>
+  <p class="foot">미국 종목(NASDAQ·NYSE·AMEX, ETF 제외 시도) 기준이며 기준일은 미국 거래일입니다. 임계값은 아직 보정되지 않은 가정입니다. 별(★)은 지표 순위의 종합 상위일 뿐 매수 추천이 아닙니다.
+  데이터에 시간외 거래가 포함되는지, 시세 지연 여부는 확인되지 않았습니다. 이 필터의 성과는 과거 데이터로 검증되지 않았습니다.</p>
+</div>
+
 <div id="tab-open" hidden>
   <div class="sub" id="o-meta"></div>
   <div id="o-banners"></div>
@@ -143,9 +179,23 @@ tr.starred{background:color-mix(in srgb,#d99a00 9%,transparent)}
   <p class="foot" id="foot-masters">이 페이지는 공개된 투자 철학을 수치 조건으로 옮긴 <b>후보 선별 도구</b>이며 투자 자문이나 매수·매도 추천이 아닙니다.
   통과 여부는 직전 결산·최근 시점의 단일 시점 값으로 계산되므로, 투자 판단 전에 공시와 사업 내용을 직접 확인하세요.</p>
 </div>
+<script>
+// shared note renderer (info / warn / danger). Long text: first sentence + expandable rest.
+window.banner=function(text,level){
+  text=String(text==null?'':text).replace(/^\s*⚠\s*/,'');
+  if(!level){ level=/샘플|쓰지 말|실패/.test(text)?'danger':(/경고|주의|확인하지 못|빠질 수/.test(text)?'warn':'info'); }
+  var ic=level==='info'?'i':'!';
+  function esc(x){return String(x).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+  var head=text, rest='';
+  if(text.length>120){ var m=text.match(/^(.{20,}?[.。]|.{20,}?다\.)\s+(.*)$/); if(m){ head=m[1]; rest=m[2]; } }
+  var body='<div class="nt">'+esc(head)+'</div>'+(rest?'<details><summary>자세히 보기</summary><div class="nb">'+esc(rest)+'</div></details>':'');
+  return '<div class="note '+level+'"><span class="ni" aria-hidden="true">'+ic+'</span><div>'+body+'</div></div>';
+};
+</script>
 <script src="results.js"></script>
 <script src="surge.js"></script>
 <script src="open.js"></script>
+<script src="global.js"></script>
 <script>
 (function(){
   var R = window.RESULTS;
@@ -157,12 +207,12 @@ tr.starred{background:color-mix(in srgb,#d99a00 9%,transparent)}
   function f(v,d){ if(v===null||v===undefined) return '-'; return Number(v).toLocaleString('ko-KR',{maximumFractionDigits:d===undefined?1:d}); }
   function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
 
-  $('metaline').textContent = '데이터: ' + meta.source + ' · 수집 ' + (meta.data_collected_at||'-') + ' · 분석 ' + meta.analyzed + '종목 (대상 ' + meta.universe + ')';
+  $('metaline').textContent = '수집 ' + (meta.data_collected_at||'-') + ' · 분석 ' + meta.analyzed + '종목 (대상 ' + meta.universe + ')';
   var b = '';
-  if(meta.sample) b += '<div class="banner sample">⚠ 샘플 화면입니다. 아래 종목·수치는 가상의 데이터이며 실제 시장 정보가 아닙니다. collect_kb.py → screen.py를 실행하면 실제 데이터로 바뀝니다.</div>';
-  if(meta.stripped) b += '<div class="banner">공개용 간소 모드: 통과 여부만 표시하고 원 수치는 숨겼습니다.</div>';
+  if(meta.sample) b += banner('샘플 화면입니다. 아래 종목·수치는 가상의 데이터이며 실제 시장 정보가 아닙니다. collect_kb.py → screen.py를 실행하면 실제 데이터로 바뀝니다.','danger');
+  if(meta.stripped) b += banner('공개용 간소 모드: 통과 여부만 표시하고 원 수치는 숨겼습니다.','info');
   var ex = Object.keys(meta.excluded||{}).map(function(k){return k+' '+meta.excluded[k]}).join(', ');
-  if(ex) b += '<div class="banner">분석에서 제외: ' + esc(ex) + '</div>';
+  if(ex) b += banner('분석에서 제외: ' + ex,'info');
   $('banners').innerHTML = b;
 
   // status of one stock for one master: pass / near (exactly one criterion missed, all data present) / no
@@ -242,7 +292,7 @@ tr.starred{background:color-mix(in srgb,#d99a00 9%,transparent)}
 <script>
 // ---- tabs
 (function(){
-  var tabs={masters:'tab-masters',surge:'tab-surge',open:'tab-open'};
+  var tabs={masters:'tab-masters',surge:'tab-surge',open:'tab-open',global:'tab-global'};
   function show(name){
     Object.keys(tabs).forEach(function(k){
       document.getElementById(tabs[k]).hidden = (k!==name);
@@ -266,9 +316,9 @@ tr.starred{background:color-mix(in srgb,#d99a00 9%,transparent)}
   var m=S.meta, c=m.conditions, stocks=S.stocks;
   $('s-meta').textContent='수집 '+(m.collected_at||'-')+' · 기준일 '+m.now_dt+' · 결과 '+m.final+'종목';
   var b='';
-  if(m.sample) b+='<div class="banner sample">⚠ 샘플 화면입니다. 종목과 수치는 가상 데이터이며 실제 시장 정보가 아닙니다.</div>';
-  (m.warnings||[]).forEach(function(w){ b+='<div class="banner">'+esc(w)+'</div>'; });
-  (m.exclusion_notice||[]).forEach(function(w){ b+='<div class="banner">⚠ '+esc(w)+'</div>'; });
+  if(m.sample) b+=banner('샘플 화면입니다. 종목과 수치는 가상 데이터이며 실제 시장 정보가 아닙니다.','danger');
+  (m.warnings||[]).forEach(function(w){ b+=banner(w); });
+  (m.exclusion_notice||[]).forEach(function(w){ b+=banner(w,'warn'); });
   $('s-banners').innerHTML=b;
   $('s-conds').innerHTML='<div class="cond"><span><b>대상</b> KOSPI·KOSDAQ</span><span><b>거래대금</b> '+eok(c.min_value)+'억 이상</span>'
     +'<span><b>거래대금 배수</b> 직전 '+c.window+'거래일 평균(당일 제외) 대비 '+c.mult_min+'배 이상</span>'
@@ -285,12 +335,12 @@ tr.starred{background:color-mix(in srgb,#d99a00 9%,transparent)}
     if(!f) return '-';
     function one(lbl,x){
       if(!x||x.sum_sign==null) return lbl+' -';
-      var arrow=x.sum_sign>0?'<span style="color:#c2410c">▲</span>':(x.sum_sign<0?'<span style="color:#1d4ed8">▼</span>':'■');
+      var arrow=x.sum_sign>0?'<span style="color:var(--up)">▲</span>':(x.sum_sign<0?'<span style="color:var(--down)">▼</span>':'■');
       return lbl+' '+arrow+x.pos_days+'/'+x.n;
     }
     var t=one('외',f.fgnr)+' · '+one('기',f.ogn)+' · '+one('개',f.indv);
-    if(f.tag) t+='<div style="margin-top:2px;color:'+(f.tag.indexOf('개인')===0?'#b45309':(f.tag.indexOf('매도')>0?'#1d4ed8':'#15803d'))+'">'+f.tag+'</div>';
-    if(f.has_estimate) t+='<div style="color:#888">오늘 값은 추정</div>';
+    if(f.tag) t+='<div style="margin-top:2px;color:'+(f.tag.indexOf('개인')===0?'var(--amber)':(f.tag.indexOf('매도')>0?'var(--down)':'var(--ok)'))+'">'+f.tag+'</div>';
+    if(f.has_estimate) t+='<div style="color:var(--na)">오늘 값은 추정</div>';
     return t;
   }
   $('s-empty').hidden=stocks.length>0;
@@ -302,7 +352,7 @@ tr.starred{background:color-mix(in srgb,#d99a00 9%,transparent)}
       +'<td class="num"><b>×'+n(s.value_mult,2)+'</b></td><td class="num">×'+n(s.vol_mult,2)+'</td><td class="num">'+eok(s.cap)+'</td>'
       +'<td class="num">'+n(s.score,1)+'</td>'
       +'<td class="num">'+(s.close_pos==null?'-':Math.round(s.close_pos*100)+'%')+'</td>'
-      +'<td class="num">'+(s.upper_wick==null?'-':Math.round(s.upper_wick*100)+'%')+(s.shape_tag?'<div class="sub" style="color:'+(s.shape_tag==='윗꼬리 큼'?'#b45309':'#15803d')+'">'+s.shape_tag+'</div>':'')+'</td>'
+      +'<td class="num">'+(s.upper_wick==null?'-':Math.round(s.upper_wick*100)+'%')+(s.shape_tag?'<div class="sub" style="color:'+(s.shape_tag==='윗꼬리 큼'?'var(--amber)':'var(--ok)')+'">'+s.shape_tag+'</div>':'')+'</td>'
       +'<td class="sub" style="white-space:normal">'+flowCell(s.flow)+'</td>'
       +'<td class="hide-m sub" style="white-space:normal">'+esc(st||'-')+'</td></tr>';
   }).join('');
@@ -325,8 +375,8 @@ tr.starred{background:color-mix(in srgb,#d99a00 9%,transparent)}
   var m=O.meta||{}, stocks=O.stocks||[];
   $('o-meta').textContent='수집 '+(m.collected_at||'-').replace('T',' ')+' · 기준일 '+(m.now_dt||'-')+' · 전일 후보 '+(m.prev_dt||'-')+' · '+stocks.length+'종목';
   var b='';
-  if(m.sample) b+='<div class="banner sample">⚠ 샘플 화면입니다. 종목과 수치는 가상 데이터이며 실제 시장 정보가 아닙니다.</div>';
-  (m.warnings||[]).forEach(function(w){ b+='<div class="banner">'+esc(w)+'</div>'; });
+  if(m.sample) b+=banner('샘플 화면입니다. 종목과 수치는 가상 데이터이며 실제 시장 정보가 아닙니다.','danger');
+  (m.warnings||[]).forEach(function(w){ b+=banner(w); });
   $('o-banners').innerHTML=b;
   var c=m.conditions||{};
   $('o-conds').innerHTML='<div><b>점검 항목</b> 전일 종가 위 · 시가 위 · VWAP 위 · 고점 -'+n(c.open_pullback_max_pct,1)+'% 이내 · 같은 시각 거래 페이스 ×'+n(c.open_pace_min,1)+' 이상 · 체결강도 '+n(c.open_strength_min,0)+' 이상</div>'
@@ -352,6 +402,50 @@ tr.starred{background:color-mix(in srgb,#d99a00 9%,transparent)}
       +'<td class="num">'+(s.gap_pct==null?'-':(s.gap_pct>=0?'+':'')+n(s.gap_pct,2)+'%')+'</td>'
       +'<td style="white-space:normal;text-align:left">'+chips+det+'</td></tr>';
   }).join('');
+})();
+
+// ---- global (US) surge tab
+(function(){
+  var G=window.GLOBAL_DATA, $=function(id){return document.getElementById(id)};
+  function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+  function n(v,d){ if(v===null||v===undefined||isNaN(v)) return '-'; return Number(v).toLocaleString('ko-KR',{maximumFractionDigits:d===undefined?1:d,minimumFractionDigits:d===undefined?0:d}); }
+  function usd(v,div,d){ return v==null?'-':n(v/div,d); }
+  if(!G){ $('g-meta').textContent='global.js가 없습니다. run_global.bat를 먼저 실행하세요(한국 시간 아침, 미국 장 마감 후).'; return; }
+  var m=G.meta, c=m.conditions, stocks=G.stocks;
+  $('g-meta').textContent='수집 '+(m.collected_at||'-')+' · 미국 거래일 '+m.trade_dt+' · 평가 '+m.evaluated+'종목 중 결과 '+m.final+'종목';
+  var b='';
+  (m.warnings||[]).forEach(function(w){ b+=banner(w); });
+  (m.exclusion_notice||[]).forEach(function(w){ b+=banner(w,'warn'); });
+  $('g-banners').innerHTML=b;
+  $('g-conds').innerHTML='<div class="cond"><span><b>대상</b> '+esc((c.markets||[]).join('·'))+' (AB=NASDAQ, AC=NYSE, AD=AMEX)</span><span><b>거래대금</b> $'+usd(c.value_min,1e6,0)+'M 이상</span>'
+    +'<span><b>거래대금 배수</b> 직전 '+c.window+'거래일 평균(당일 제외) 대비 '+c.mult_min+'배 이상</span>'
+    +'<span><b>등락률</b> +'+c.chg_min+'% ~ +'+c.chg_max+'%</span><span><b>시가총액</b> $'+usd(c.cap_min,1e9,1)+'B 이상</span><span><b>주가</b> $'+c.px_min+' 이상</span></div>'
+    +'<div class="sub" style="margin-top:6px">종합점수 = 지표 순위 가중합 (거래대금 배수 '+Math.round(c.weights.value_mult*100)+'%, 거래량 배수 '+Math.round(c.weights.vol_mult*100)+'%, 거래대금 규모 '+Math.round(c.weights.value_size*100)+'%, 시가총액 '+Math.round(c.weights.cap*100)+'%). 목록은 거래대금 배수 순입니다.</div>';
+  var top=stocks.filter(function(s){return s.star}).sort(function(a,b){return a.star-b.star});
+  if(top.length){
+    $('g-top').hidden=false;
+    $('g-top').innerHTML='<div class="sub" style="margin-bottom:6px">종합 상위 '+top.length+'종목 (지표 순위 기준, 추천 아님)</div><div class="topgrid">'+top.map(function(s){
+      return '<div class="topitem"><span class="star">★'+s.star+'</span> <b>'+esc(s.code)+'</b> <span class="sub">'+esc(s.name)+'</span><div class="sub">점수 '+n(s.score,1)+' · 대금 ×'+n(s.value_mult,2)+' · 량 ×'+n(s.vol_mult,2)+(s.shape_tag?' · '+s.shape_tag:'')+'</div></div>';
+    }).join('')+'</div>';
+  }
+  $('g-empty').hidden=stocks.length>0;
+  $('g-tbody').innerHTML=stocks.map(function(s,i){
+    return '<tr class="'+(s.star?'starred':'')+'"><td class="num">'+(s.star?'<span class="star">★'+s.star+'</span>':(i+1))+'</td>'
+      +'<td><b>'+esc(s.code)+'</b> <span class="sub">'+esc(s.exchange)+'</span><div class="sub">'+esc(s.name)+(s.name_kr?' · '+esc(s.name_kr):'')+'</div></td>'
+      +'<td class="num">'+n(s.price,2)+'</td><td class="num">+'+n(s.chg,2)+'%</td><td class="num">'+usd(s.value,1e6,1)+'</td>'
+      +'<td class="num"><b>×'+n(s.value_mult,2)+'</b></td><td class="num">×'+n(s.vol_mult,2)+'</td><td class="num">'+usd(s.cap,1e9,2)+'</td>'
+      +'<td class="num">'+n(s.score,1)+'</td>'
+      +'<td class="num">'+(s.close_pos==null?'-':Math.round(s.close_pos*100)+'%')+'</td>'
+      +'<td class="num">'+(s.upper_wick==null?'-':Math.round(s.upper_wick*100)+'%')+(s.shape_tag?'<div class="sub" style="color:'+(s.shape_tag==='윗꼬리 큼'?'var(--amber)':'var(--ok)')+'">'+s.shape_tag+'</div>':'')+'</td>'
+      +'<td class="num">'+(s.wk52_gap==null?'-':n(s.wk52_gap,1)+'%')+'</td></tr>';
+  }).join('');
+  var f=m.funnel||{}, u=m.unit_check||{};
+  var labels={ranking_rows:'랭킹 합계',drop_halt:'거래정지',drop_exclude_codes:'제외 코드',drop_etf_like:'ETF 등(필드/이름)',drop_price:'주가 미달',drop_cap:'시총 미달',drop_value_pre:'거래대금 미달(사전)',drop_not_rising:'상승 아님(사전)',
+    drop_stale_candle:'일봉 날짜 불일치',drop_candles_lt_window:'일봉 부족',drop_no_today:'당일 값 없음',drop_no_average:'평균 계산 불가',drop_value:'거래대금 미달',drop_change:'등락률 범위 밖',drop_multiple:'배수 미달',error_stock:'조회 오류'};
+  var h=Object.keys(f).map(function(k){return esc(labels[k]||k)+': '+f[k]}).join(' · ');
+  h+='<br><br>임계값 민감도 (거래대금 하한 × 배수 하한 → 통과 종목 수, 시총·주가·등락률 조건 적용):<br>'+(m.sweep||[]).map(function(r){return '$'+(r.value_min/1e6)+'M×'+r.mult_min+' → '+r.n}).join(' · ');
+  h+='<br><br>단위 점검: 거래대금/(종가×거래량) 중앙값 '+n(u.value_vs_price_volume_median,3)+' (표본 '+n(u.n,0)+', 1에 가까울수록 단위·출처가 일치)';
+  $('g-funnel').innerHTML=h;
 })();
 </script>
 </body>
