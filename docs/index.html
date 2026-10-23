@@ -69,6 +69,10 @@ summary{cursor:pointer;font-weight:600}
 .foot{color:var(--sub);font-size:12.5px;margin-top:22px;padding-top:14px;border-top:1px solid var(--line)}
 ul.plain{margin:6px 0 0;padding-left:18px;color:var(--sub);font-size:13.5px}
 @media (max-width:640px){.hide-m{display:none}.wrap{padding-top:18px}.tabs{display:flex;width:100%}.tab{flex:1;padding:8px 4px;font-size:13px}}
+.tbar{display:flex;align-items:center;gap:12px;margin:0 0 10px;flex-wrap:wrap}
+.tgl{border:1px solid var(--line);background:var(--card2);color:var(--ink);border-radius:999px;padding:6px 14px;font-size:13px;cursor:pointer;font-family:inherit}
+.tgl:hover{border-color:var(--accent);color:#cfe1ff}
+table.coll .dc{display:none}
 .star{color:var(--gold);font-weight:700;white-space:nowrap}
 tr.starred{background:linear-gradient(90deg,rgba(229,177,58,.13),rgba(229,177,58,.03))}
 .topgrid{display:flex;flex-wrap:wrap;gap:10px}
@@ -127,10 +131,11 @@ tr.starred{background:linear-gradient(90deg,rgba(229,177,58,.13),rgba(229,177,58
   <div class="card" id="s-conds"></div>
   <div class="card" id="s-top" hidden></div>
   <div class="card scroll">
-    <table>
+    <div class="tbar"><button type="button" class="tgl" data-target="s-table" aria-expanded="false">세부 지표 보기 ▾</button><span class="sub">거래대금 · 거래대금 배수 · 거래량 배수 · 시가총액</span></div>
+    <table id="s-table" class="coll">
       <thead><tr>
-        <th>순위</th><th>종목</th><th>현재가</th><th>등락률</th><th>거래대금(억)</th>
-        <th>거래대금 배수</th><th>거래량 배수</th><th>시가총액(억)</th><th>종합점수</th><th>종가위치</th><th>윗꼬리</th><th>수급(최근 5일)</th><th class="hide-m">상태</th>
+        <th>순위</th><th>종목</th><th>현재가</th><th>등락률</th><th class="dc">거래대금(억)</th>
+        <th class="dc">거래대금 배수</th><th class="dc">거래량 배수</th><th class="dc">시가총액(억)</th><th>종합점수</th><th>종가위치</th><th>윗꼬리</th><th>수급(최근 5일)</th><th class="hide-m">상태</th>
       </tr></thead>
       <tbody id="s-tbody"></tbody>
     </table>
@@ -148,10 +153,11 @@ tr.starred{background:linear-gradient(90deg,rgba(229,177,58,.13),rgba(229,177,58
   <div class="card" id="g-conds"></div>
   <div class="card" id="g-top" hidden></div>
   <div class="card scroll">
-    <table>
+    <div class="tbar"><button type="button" class="tgl" data-target="g-table" aria-expanded="false">세부 지표 보기 ▾</button><span class="sub">거래대금 · 거래대금 배수 · 거래량 배수 · 시가총액</span></div>
+    <table id="g-table" class="coll">
       <thead><tr>
-        <th>순위</th><th>종목</th><th>현재가($)</th><th>등락률</th><th>거래대금($M)</th>
-        <th>거래대금 배수</th><th>거래량 배수</th><th>시가총액($B)</th><th>종합점수</th><th>종가위치</th><th>윗꼬리</th><th>52주 고점 대비</th>
+        <th>순위</th><th>종목</th><th>현재가($)</th><th>등락률</th><th class="dc">거래대금($M)</th>
+        <th class="dc">거래대금 배수</th><th class="dc">거래량 배수</th><th class="dc">시가총액($B)</th><th>종합점수</th><th>종가위치</th><th>윗꼬리</th><th>52주 고점 대비</th>
       </tr></thead>
       <tbody id="g-tbody"></tbody>
     </table>
@@ -348,8 +354,8 @@ window.banner=function(text,level){
     var st=[s.is_st&&(({'01':'관리종목','02':'투자위험','03':'투자경고','04':'투자주의','05':'신용A/B/C군','06':'신용D군','08':'증거금100','09':'거래정지'})[s.is_st]||('코드 '+s.is_st)), s.trade_restriction, s.registration, (s.risk_grade&&s.risk_grade!=='미지정')?('위험등급 '+s.risk_grade):''].filter(Boolean).join(' / ');
     return '<tr class="'+(s.star?'starred':'')+'"><td class="num">'+(s.star?'<span class="star">★'+s.star+'</span>':(i+1))+'</td>'
       +'<td><b>'+esc(s.name)+'</b><div class="sub">'+s.code+' · '+s.market+'</div></td>'
-      +'<td class="num">'+n(s.price,0)+'</td><td class="num">+'+n(s.chg,2)+'%</td><td class="num">'+eok(s.value)+'</td>'
-      +'<td class="num"><b>×'+n(s.value_mult,2)+'</b></td><td class="num">×'+n(s.vol_mult,2)+'</td><td class="num">'+eok(s.cap)+'</td>'
+      +'<td class="num">'+n(s.price,0)+'</td><td class="num">+'+n(s.chg,2)+'%</td><td class="num dc">'+eok(s.value)+'</td>'
+      +'<td class="num dc"><b>×'+n(s.value_mult,2)+'</b></td><td class="num dc">×'+n(s.vol_mult,2)+'</td><td class="num dc">'+eok(s.cap)+'</td>'
       +'<td class="num">'+n(s.score,1)+'</td>'
       +'<td class="num">'+(s.close_pos==null?'-':Math.round(s.close_pos*100)+'%')+'</td>'
       +'<td class="num">'+(s.upper_wick==null?'-':Math.round(s.upper_wick*100)+'%')+(s.shape_tag?'<div class="sub" style="color:'+(s.shape_tag==='윗꼬리 큼'?'var(--amber)':'var(--ok)')+'">'+s.shape_tag+'</div>':'')+'</td>'
@@ -432,20 +438,31 @@ window.banner=function(text,level){
   $('g-tbody').innerHTML=stocks.map(function(s,i){
     return '<tr class="'+(s.star?'starred':'')+'"><td class="num">'+(s.star?'<span class="star">★'+s.star+'</span>':(i+1))+'</td>'
       +'<td><b>'+esc(s.code)+'</b> <span class="sub">'+esc(s.exchange)+'</span><div class="sub">'+esc(s.name)+(s.name_kr?' · '+esc(s.name_kr):'')+'</div></td>'
-      +'<td class="num">'+n(s.price,2)+'</td><td class="num">+'+n(s.chg,2)+'%</td><td class="num">'+usd(s.value,1e6,1)+'</td>'
-      +'<td class="num"><b>×'+n(s.value_mult,2)+'</b></td><td class="num">×'+n(s.vol_mult,2)+'</td><td class="num">'+usd(s.cap,1e9,2)+'</td>'
+      +'<td class="num">'+n(s.price,2)+'</td><td class="num">+'+n(s.chg,2)+'%</td><td class="num dc">'+usd(s.value,1e6,1)+'</td>'
+      +'<td class="num dc"><b>×'+n(s.value_mult,2)+'</b></td><td class="num dc">×'+n(s.vol_mult,2)+'</td><td class="num dc">'+usd(s.cap,1e9,2)+'</td>'
       +'<td class="num">'+n(s.score,1)+'</td>'
       +'<td class="num">'+(s.close_pos==null?'-':Math.round(s.close_pos*100)+'%')+'</td>'
       +'<td class="num">'+(s.upper_wick==null?'-':Math.round(s.upper_wick*100)+'%')+(s.shape_tag?'<div class="sub" style="color:'+(s.shape_tag==='윗꼬리 큼'?'var(--amber)':'var(--ok)')+'">'+s.shape_tag+'</div>':'')+'</td>'
       +'<td class="num">'+(s.wk52_gap==null?'-':n(s.wk52_gap,1)+'%')+'</td></tr>';
   }).join('');
   var f=m.funnel||{}, u=m.unit_check||{};
-  var labels={ranking_rows:'랭킹 합계',drop_halt:'거래정지',drop_exclude_codes:'제외 코드',drop_etf_like:'ETF 등(필드/이름)',drop_price:'주가 미달',drop_cap:'시총 미달',drop_value_pre:'거래대금 미달(사전)',drop_not_rising:'상승 아님(사전)',
+  var labels={ranking_rows:'랭킹 합계',drop_halt:'거래정지',drop_exclude_codes:'제외 코드',drop_etf_like:'ETF 등(필드/이름)',drop_price:'주가 미달',drop_cap:'시총 미달',drop_value_pre:'거래대금 미달(사전)',drop_not_rising:'상승 아님(사전)',drop_etf_info:'ETF·레버리지(종목정보)',info_ok:'종목정보 확인',info_missing:'종목정보 없음',info_error:'종목정보 오류',
     drop_stale_candle:'일봉 날짜 불일치',drop_candles_lt_window:'일봉 부족',drop_no_today:'당일 값 없음',drop_no_average:'평균 계산 불가',drop_value:'거래대금 미달',drop_change:'등락률 범위 밖',drop_multiple:'배수 미달',error_stock:'조회 오류'};
   var h=Object.keys(f).map(function(k){return esc(labels[k]||k)+': '+f[k]}).join(' · ');
   h+='<br><br>임계값 민감도 (거래대금 하한 × 배수 하한 → 통과 종목 수, 시총·주가·등락률 조건 적용):<br>'+(m.sweep||[]).map(function(r){return '$'+(r.value_min/1e6)+'M×'+r.mult_min+' → '+r.n}).join(' · ');
   h+='<br><br>단위 점검: 거래대금/(종가×거래량) 중앙값 '+n(u.value_vs_price_volume_median,3)+' (표본 '+n(u.n,0)+', 1에 가까울수록 단위·출처가 일치)';
   $('g-funnel').innerHTML=h;
+})();
+
+// ---- detail-column toggles (surge / overseas tables)
+(function(){
+  Array.prototype.forEach.call(document.querySelectorAll('.tgl'),function(b){
+    b.onclick=function(){
+      var t=document.getElementById(b.getAttribute('data-target')); if(!t) return;
+      var open=t.classList.toggle('coll')===false;
+      b.setAttribute('aria-expanded',open); b.textContent=open?'세부 지표 접기 ▴':'세부 지표 보기 ▾';
+    };
+  });
 })();
 </script>
 </body>
