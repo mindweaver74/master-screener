@@ -1,0 +1,9 @@
+.env
+.env.txt
+env.txt
+kb_keys.txt
+.token_cache.json
+data/
+__pycache__/
+*.pyc
+result/

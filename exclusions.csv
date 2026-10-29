@@ -1,0 +1,4 @@
+# Optional exclusion list: code,name,reason  (UTF-8 or CP949). Lines starting with # are ignored.
+# Use it for stocks the API cannot flag: unfaithful disclosure, investment-attention (hwangi), abnormal surge.
+# Example:
+# 000000,Example Corp,unfaithful disclosure
