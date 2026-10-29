@@ -1,3 +1,3 @@
-# master-screener
-master-screener
+# screener
+screener
 https://mindweaver74.github.io/screener/
